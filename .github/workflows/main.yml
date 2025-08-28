@@ -1,45 +1,70 @@
-name: Node.js CLI
+name: Node.js CI
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
-  build:
+  install:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node_version: ["20.x"]
-        os: [ubuntu-latest]
-
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.5
-
-      - name: Use Node.js ${{ matrix.node_version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node_version }}
-          cache: "pnpm"
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-node
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Aqua Security Trivy
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup Node.js with cache
+        uses: ./.github/actions/setup-node
+        with:
+          restore-cache: "true"
+
+      - name: Build
+        run: pnpm build
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup Node.js with cache
+        uses: ./.github/actions/setup-node
+        with:
+          restore-cache: "true"
+
+      - name: Aqua Security Trivy Install
         uses: aquasecurity/setup-trivy@v0.2.3
 
-      - name: Run Trivy scan
+      - name: Run pnpm audit
+        run: pnpm audit-report
+
+      - name: Archive pnpm audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: audit-report.html
+
+      - name: Run SAST
         run: pnpm trivy-report
 
-      - name: Upload Trivy report
+      - name: Archive SAST results
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
           path: trivy-report.txt
-
-      - name: Run build
-        run: pnpm build

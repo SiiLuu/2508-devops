@@ -1,0 +1,29 @@
+name: "Setup Node.js and Dependencies"
+description: "Common setup steps for Node.js projects"
+
+inputs:
+  restore-cache:
+    description: "Whether to restore node_modules cache"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.5
+
+    - name: Use Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20.x"
+        cache: "pnpm"
+
+    - name: Restore node_modules
+      if: inputs.restore-cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
