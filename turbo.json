@@ -13,7 +13,6 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
-    "gnagnagna": {},
     "dev": {
       "persistent": true,
       "cache": false
