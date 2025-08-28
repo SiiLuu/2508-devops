@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
+    "lint": "echo Linting the code...",
     "dev": "echo Starting development server...",
     "build": "echo Building the calculator...",
     "check-types": "echo Checking types..."
