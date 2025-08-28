@@ -26,8 +26,20 @@ jobs:
           node-version: ${{ matrix.node_version }}
           cache: "pnpm"
 
-      - name: pnpm install and build
-        run: |
-          pnpm install
-          pnpm audit
-          pnpm build
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Aqua Security Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+
+      - name: Run Trivy scan
+        run: pnpm trivy-report
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.txt
+
+      - name: Run build
+        run: pnpm build

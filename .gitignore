@@ -1,2 +1,4 @@
 node_modules/
 .turbo
+audit-report.html
+trivy-report.txt
